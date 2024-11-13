@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="question-jump">
+            <label for="jump-to-question">Jump to Question: </label>
+            <input type="number" id="jump-to-question" min="0" placeholder="Enter Question No." />
+            <button onclick="jumpToQuestion()">Go</button>
+        </div>
+        <div id="question" class="question"></div>
+        <ul id="options" class="options"></ul>
+        <div id="result" class="result"></div>
+        <div class="navigation">
+            <button id="prev-button" onclick="loadPrevQuestion()" style="display:none;">Previous</button>
+            <button id="next-button" onclick="loadNextQuestion()" style="display:none;">Next</button>
+        </div>
+        <div id="solution" class="solution"></div>
+
+    </div>
+
+    <script>
+        let currentQuestion = 0;
+        let totalQuestions = 0;
+        let correctAnswer = '';
+        let solution = ''
+        let ex 
+        function loadQuestion(questionId) {
+            fetch(`/question/` + questionId)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        document.getElementById("question").innerText = "Quiz completed!";
+                        document.getElementById("options").style.display = "none";
+                        document.getElementById("result").style.display = "none";
+                        document.getElementById("next-button").style.display = "none";
+                        document.getElementById("prev-button").style.display = "block";  // Allow going back to previous question
+                    } else {
+                        totalQuestions = data.total_questions;
+                        // experimenting
+                        ex = data ;
+                        //
+                        document.getElementById("question").innerText = data.question;
+                        correctAnswer = data.answer;
+                        const optionsList = document.getElementById("options");
+                        solution = data.solution
+                        // Show the options again if they were hidden
+                        optionsList.style.display = "block";
+                        optionsList.innerHTML = '';  // Clear previous options
+
+                        // Populate the new options
+                        data.options.forEach((option, index) => {
+                            const li = document.createElement("li");
+                            li.innerHTML = `<button class="option-btn" onclick="checkAnswer('${option}', this)">${option}</button>`;
+                            optionsList.appendChild(li);
+                        });
+
+                        // Reset result text
+                        document.getElementById("result").innerText = '';
+                        document.getElementById("result").style.display = "none";
+                        document.getElementById("solution").innerText = '' ;
+                        document.getElementById("solution").style.display = "None" ;
+
+
+                        // Handle visibility of buttons
+                        // document.getElementById("next-button").style.display = "none";
+                        document.getElementById("prev-button").style.display = questionId > 0 ? "block" : "none";
+                        document.getElementById("next-button").style.display = questionId < totalQuestions - 1 ? "block" : "none";
+                    }
+                });
+        }
+
+        function checkAnswer(selectedOption, buttonElement) {
+            const allButtons = document.querySelectorAll('.option-btn');
+            // Disable buttons once clicked
+            allButtons.forEach(button => {
+                button.disabled = true;
+            });
+
+            if (selectedOption === correctAnswer) {
+                buttonElement.style.backgroundColor = "green";
+                document.getElementById("result").innerText = "Correct!";
+            } else {
+                buttonElement.style.backgroundColor = "red";
+                document.getElementById("result").innerText = "Wrong! The correct answer is: " + correctAnswer;
+
+               const correctButton = [...allButtons].find(button => button.textContent === correctAnswer);
+                if (correctButton) {
+                    correctButton.style.backgroundColor = "green"; // Set the correct answer button to blue
+                }
+            }
+            document.getElementById("solution").innerText = solution ;
+            document.getElementById("solution").style.display = "block" ;
+            document.getElementById("result").style.display = "block";
+            document.getElementById("next-button").style.display = "block";
+        }
+
+        function loadNextQuestion() {
+            currentQuestion += 1;
+            loadQuestion(currentQuestion);
+        }
+
+        function loadPrevQuestion() {
+            if (currentQuestion > 0) {
+                currentQuestion -= 1;
+                loadQuestion(currentQuestion);
+            }
+        }
+
+        function jumpToQuestion() {
+            const questionNumber = document.getElementById("jump-to-question").value;
+            console.log(questionNumber)
+            if (questionNumber && questionNumber >= 0 && questionNumber < totalQuestions) {
+                currentQuestion = parseInt(questionNumber);
+                loadQuestion(currentQuestion);
+
+            }
+            else{
+                document.getElementById("result").innerText = "Invalid question number.";
+                document.getElementById("result").style.display = "block";
+            }
+        }
+
+        // Load the first question when the page loads
+        loadQuestion(currentQuestion);
+    </script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+/* General page styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #d2d1f9fc;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+/* Quiz container styling */
+.quiz-container {
+    background-color: rgb(252, 253, 252);
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 80%;
+    padding: 20px;
+    text-align: center;
+}
+
+/* Question styling */
+.question {
+    font-size: 1.2em;
+    margin-bottom: 20px;
+    word-wrap: break-word;  /* Ensure long words wrap to the next line */
+    overflow-wrap: break-word;  /* For more compatibility */
+    white-space: pre-wrap; /* Ensure the text wraps properly */
+    line-height: 1.6;
+}
+
+/* Options list styling */
+.options {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.options li {
+    margin-bottom: 15px;
+
+}
+
+.options button {
+    width: 100%;
+    padding: 10px;
+    font-size: 18px;
+    color: #000000;
+    background-color: #dbe0e3;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-align: left;
+}
+
+.options button:hover {
+    background-color: #45a049;
+}
+
+.options button:active {
+    background-color: #3e8e41;
+}
+
+.option-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Result styling */
+.result {
+    font-size: 20px;
+    color: red;
+    margin-top: 20px;
+    display: none;
+}
+
+.solution {
+    font-size: 1.2em;
+    margin-top: 20px;
+    background-color: #f1f1f1;
+    padding: 15px;
+    border-radius: 5px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: pre-wrap;
+    line-height: 1.6;
+    max-height: 150px;  /* Limit height */
+    overflow-y: auto;
+}
+
+/* Button to move to next question */
+#next-button, #prev-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 18px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+
+#next-button:hover, #prev-button:hover {
+    background-color: #0056b3;
+}
+
+/* Navigation buttons (Previous/Next) */
+.navigation {
+    display: flex;
+    justify-content: space-between; /* Positions buttons at opposite ends */
+    margin-top: 20px;
+}
+
+#next-button {
+    /* You can add specific styles for the previous button here if needed */
+    align-items: flex-end;
+}
+
+
+/* Question jump input */
+.question-jump {
+    margin-top: 20px;
+}
+
+.question-jump input {
+    padding: 8px;
+    font-size: 16px;
+    width: 80px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.question-jump button {
+    padding: 8px 15px;
+    font-size: 16px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+.question-jump button:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+    .question {
+        font-size: 20px;
+    }
+
+    .options button {
+        font-size: 16px;
+        padding: 8px;
+    }
+
+    #next-button, #prev-button {
+        font-size: 16px;
+        padding: 8px 15px;
+    }
+
+    .question-jump input {
+        width: 60px;
+    }
+}
