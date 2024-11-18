@@ -7,7 +7,22 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+    <!-- for navbar -->
+    <header class="navbar">
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/polity">Polity</a></li>
+                <li><a href="/history">History</a></li>
+                <li><a href="/geography">Geography</a></li>
+            </ul>
+        </nav>
+    </header>
+
+
+
     <div class="quiz-container">
+
         <div class="question-jump">
             <label for="jump-to-question">Jump to Question: </label>
             <input type="number" id="jump-to-question" min="0" placeholder="Enter Question No." />
@@ -29,7 +44,7 @@
         let totalQuestions = 0;
         let correctAnswer = '';
         let solution = ''
-        let ex 
+        let ex
         function loadQuestion(questionId) {
             fetch(`/question/` + questionId)
                 .then(response => response.json())
