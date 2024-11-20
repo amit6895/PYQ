@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin: 0;
+        }
+
+        a {
+            text-decoration: none;
+            color: #007bff;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Navbar Styles */
+        .navbar {
+            background-color: #007bff;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar nav {
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .nav-links {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 0;
+            padding: 0;
+        }
+
+        .nav-links li {
+            display: inline;
+        }
+
+        .nav-links a {
+            color: #fff;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #ffd700;
+        }
+
+        /* Content Styles */
+        .quiz-container {
+            text-align: center;
+            margin-top: 4rem;
+        }
+
+        .quiz-container h1 {
+            font-size: 2rem;
+            margin: 1rem 0;
+            color: #333;
+        }
+
+        .quiz-container a {
+            display: inline-block;
+            margin: 1rem;
+            padding: 0.75rem 1.5rem;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            font-size: 1.2rem;
+            background-color: #fff;
+            transition: all 0.3s ease;
+        }
+
+        .quiz-container a:hover {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        /* Styling for username */
+        .username {
+            color: white;
+            font-weight: bold;
+            margin-right: auto;  /* This will push the other items to the right */
+        }
+
+        /* Center alignment for login/logout buttons */
+        .quiz-container a {
+            margin: 0.5rem 1rem;
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <nav>
+            <ul class="nav-links">
+                {% if user_id %}
+                    <!-- Show the logged-in user's name if logged in -->
+                    <li class="username">Welcome, {{ username }}!</li>
+                {% endif %}
+                <li><a href="/">Home</a></li>
+                <li><a href="/polity">Polity</a></li>
+                <li><a href="/history">History</a></li>
+                <li><a href="/geography">Geography</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Display flashed messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash-message">
+                <p>{{ messages[0] }}</p>  <!-- Display the first flashed message -->
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Login/Logout Section -->
+    <div class="quiz-container">
+        {% if user_id %}
+            <!-- Display logout button if user is logged in -->
+            <a href="/logout"><h1>Logout</h1></a>
+        {% else %}
+            <!-- Display login button if user is not logged in -->
+            <a href="/login"><h1>Login</h1></a>
+        {% endif %}
+        <a href="/view_attempts"><h1>Attempt</h1></a>
+    </div>
+</body>
+</html>

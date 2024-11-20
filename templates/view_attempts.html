@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Attempts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        .navbar {
+            background-color: #007BFF;
+            padding: 10px 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar nav {
+            display: flex;
+            justify-content: center;
+        }
+
+        .nav-links {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            gap: 20px;
+        }
+
+        .nav-links li {
+            display: inline;
+        }
+
+        .nav-links a {
+            color: black;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #d4d4ff;
+        }
+
+        .attempts-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #007BFF;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        li strong {
+            color: #333;
+        }
+
+        li .status-correct {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        li .status-wrong {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar">
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="?filter=all">All</a></li>
+                <li><a href="?filter=correct">Correct</a></li>
+                <li><a href="?filter=wrong">Wrong</a></li>
+            </ul>
+        </nav>
+    </header>
+    <div class="attempts-container">
+        <h1>{{ filter_type.capitalize() }} Attempts</h1>
+        <ul>
+            {% for attempt in attempts %}
+                <li>
+                    <strong>Question:</strong> {{ attempt.question_text }} <br>
+                    <strong>Your Answer:</strong> {{ attempt.selected_answer }} <br>
+                    <strong>Correct Answer:</strong> {{ attempt.correct_answer }} <br>
+                    <strong>Status:</strong>
+                    <span class="{{ 'status-correct' if attempt.is_correct else 'status-wrong' }}">
+                        {{ "Correct" if attempt.is_correct else "Wrong" }}
+                    </span>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>

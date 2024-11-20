@@ -1,14 +1,11 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+
+
+from flask import Flask, jsonify, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
+from datetime import timedelta
 from flask_bcrypt import Bcrypt
-import time
 import pandas as pd
-from flask import Flask, jsonify, render_template
 import ast
-# from waitress import serve
-
-
-
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
@@ -16,21 +13,83 @@ app.secret_key = 'your_secret_key'
 # Configure SQLite database
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.permanent_session_lifetime = timedelta(minutes=30)
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)  # Initialize Bcrypt for hashing
-df = pd.read_csv("C:/Users/acer/Quiz_Website/data/polity.csv")
 
+# User model
 @app.route('/all_users')
 def all_users():
     users = User.query.all()
     user_data = [f"Username: {user.username}, Password: {user.password}" for user in users]
     return "<br>".join(user_data)
 
-# User model
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)
+
+
+class UserAttempt(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+    category = db.Column(db.String(50), nullable=False)
+    question_id = db.Column(db.Integer, nullable=False)
+    question_text = db.Column(db.String, nullable=False)
+    selected_answer = db.Column(db.String, nullable=False)
+    correct_answer = db.Column(db.String, nullable=False)
+    is_correct = db.Column(db.Boolean, nullable=False)
+
+
+@app.route('/save_attempt', methods=['POST'])
+def save_attempt():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized access'}), 403
+
+    data = request.json
+    user_id = session['user_id']
+    category = data['category']
+    question_id = data['question_id']
+    question_text = data['question_text']
+    selected_answer = data['selected_answer']
+    correct_answer = data['correct_answer']
+    is_correct = selected_answer == correct_answer
+
+    # Save the attempt in the database
+    attempt = UserAttempt(
+        user_id=user_id,
+        category=category,
+        question_id=question_id,
+        question_text=question_text,
+        selected_answer=selected_answer,
+        correct_answer=correct_answer,
+        is_correct=is_correct
+    )
+    db.session.add(attempt)
+    db.session.commit()
+
+    return jsonify({'message': 'Attempt saved successfully'})
+
+
+@app.route('/view_attempts', methods=['GET'])
+def view_attempts():
+    if 'user_id' not in session:
+        flash('You need to log in first!')
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    filter_type = request.args.get('filter', 'all')  # 'all', 'correct', or 'wrong'
+
+    # Query the database for user attempts
+    if filter_type == 'correct':
+        attempts = UserAttempt.query.filter_by(user_id=user_id, is_correct=True).all()
+    elif filter_type == 'wrong':
+        attempts = UserAttempt.query.filter_by(user_id=user_id, is_correct=False).all()
+    else:
+        attempts = UserAttempt.query.filter_by(user_id=user_id).all()
+
+    return render_template('view_attempts.html', attempts=attempts, filter_type=filter_type)
 
 # Registration route
 @app.route('/register', methods=['GET', 'POST'])
@@ -69,6 +128,7 @@ def login():
         user = User.query.filter_by(username=username).first()
         if user and bcrypt.check_password_hash(user.password, password):
             session['user_id'] = user.id
+            session['username'] = user.username
             flash('Login successful!')
             return redirect(url_for('dashboard'))
         else:
@@ -79,60 +139,71 @@ def login():
 
 # Dashboard route (protected)
 @app.route('/')
-@app.route('/dashboard')
+@app.route('/home')
 def dashboard():
     if 'user_id' in session:
-        global df
-        df = pd.read_csv("C:/Users/acer/Quiz_Website/data/polity.csv")
-        return render_template("quiz.html")
+        user_id = session.get('user_id')
+        username = session.get('username')
+        print(user_id)  # For debugging purposes
+        return render_template('home.html', user_id=user_id , username = username)
     else:
-
         flash('You need to login first!')
-        # time.sleep(2)
-        # m = "<p>Already have an account? <a href="/login">Login here</a></p>"
-        # return m
-        return redirect(url_for('login'))
+        return render_template('home.html', user_id=None)
 
 
+# Polity route
 @app.route('/polity')
 def polity():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    global df
-    df = pd.read_csv("C:/Users/acer/Quiz_Website/data/polity.csv")
-    return render_template('quiz.html')
 
+    # Load the Polity CSV data locally
+    polity_df = pd.read_csv("C:/Users/acer/Quiz_Website/data/polity.csv")
+    return render_template('quiz.html', questions=polity_df.to_dict(orient='records'), subject="Polity")
 
+# History route
 @app.route('/history')
 def history():
     if 'user_id' not in session:
         return redirect(url_for('login'))
-    global df
-    df = pd.read_csv("C:/Users/acer/Quiz_Website/data/history.csv")
-    return render_template('quiz.html')
 
+    # Load the History CSV data locally
+    history_df = pd.read_csv("C:/Users/acer/Quiz_Website/data/history.csv")
+    return render_template('quiz.html', questions=history_df.to_dict(orient='records'), subject="History")
+
+# Geography route
 @app.route('/geography')
 def geography():
     if 'user_id' not in session:
+        print(session)
         return redirect(url_for('login'))
-    global df
-    df = pd.read_csv("C:/Users/acer/Quiz_Website/data/geography.csv")
-    return render_template('quiz.html')
 
+    # Load the Geography CSV data locally
+    geography_df = pd.read_csv("C:/Users/acer/Quiz_Website/data/geography.csv")
+    return render_template('quiz.html', questions=geography_df.to_dict(orient='records'), subject="Geography")
 
 # Serve question data to frontend
-@app.route('/question/<int:question_id>')
-def get_question(question_id):
+@app.route('/question/<category>/<int:question_id>')
+def get_question(category, question_id):
+    # Load the correct CSV file based on the category
+    if category == "polity":
+        df = pd.read_csv("C:/Users/acer/Quiz_Website/data/polity.csv")
+    elif category == "history":
+        df = pd.read_csv("C:/Users/acer/Quiz_Website/data/history.csv")
+    elif category == "geography":
+        df = pd.read_csv("C:/Users/acer/Quiz_Website/data/geography.csv")
+    else:
+        return jsonify({"error": "Invalid category"}), 400
+
+
+    print(session)
     if question_id < len(df):
         question = df.iloc[question_id].to_dict()
         question["options"] = ast.literal_eval(question["options"])
         question["total_questions"] = len(df)
-        print(question)
         return jsonify(question)
     else:
         return jsonify({"error": "No more questions"}), 404
-
-# C://Users/acer/Quiz_Website/data
 
 # Logout route
 @app.route('/logout')

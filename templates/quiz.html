@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-    <!-- for navbar -->
+
     <header class="navbar">
         <nav>
             <ul class="nav-links">
@@ -19,9 +19,8 @@
         </nav>
     </header>
 
-
-
     <div class="quiz-container">
+        <h1>{{ subject }} Quiz</h1> <!-- Display the subject dynamically -->
 
         <div class="question-jump">
             <label for="jump-to-question">Jump to Question: </label>
@@ -43,10 +42,12 @@
         let currentQuestion = 0;
         let totalQuestions = 0;
         let correctAnswer = '';
-        let solution = ''
-        let ex
+        let solution = '';
+        let subject = "{{ subject }}";  // Get subject name from Flask template
+        let ex;
+
         function loadQuestion(questionId) {
-            fetch(`/question/` + questionId)
+            fetch(`/question/${subject.toLowerCase()}/` + questionId)  // Include the subject in the API call
                 .then(response => response.json())
                 .then(data => {
                     if (data.error) {
@@ -57,33 +58,32 @@
                         document.getElementById("prev-button").style.display = "block";  // Allow going back to previous question
                     } else {
                         totalQuestions = data.total_questions;
-                        // experimenting
-                        ex = data ;
-                        //
+                        ex = data;  // Store data for debugging
+
+                        // Display question and options
                         document.getElementById("question").innerText = data.question;
                         correctAnswer = data.answer;
+                        solution = data.solution;
                         const optionsList = document.getElementById("options");
-                        solution = data.solution
-                        // Show the options again if they were hidden
+
+                        // Reset options and result
                         optionsList.style.display = "block";
                         optionsList.innerHTML = '';  // Clear previous options
 
-                        // Populate the new options
+                        // Populate new options
                         data.options.forEach((option, index) => {
                             const li = document.createElement("li");
                             li.innerHTML = `<button class="option-btn" onclick="checkAnswer('${option}', this)">${option}</button>`;
                             optionsList.appendChild(li);
                         });
 
-                        // Reset result text
+                        // Reset result and solution
                         document.getElementById("result").innerText = '';
                         document.getElementById("result").style.display = "none";
-                        document.getElementById("solution").innerText = '' ;
-                        document.getElementById("solution").style.display = "None" ;
+                        document.getElementById("solution").innerText = '';
+                        document.getElementById("solution").style.display = "none";
 
-
-                        // Handle visibility of buttons
-                        // document.getElementById("next-button").style.display = "none";
+                        // Show/hide navigation buttons
                         document.getElementById("prev-button").style.display = questionId > 0 ? "block" : "none";
                         document.getElementById("next-button").style.display = questionId < totalQuestions - 1 ? "block" : "none";
                     }
@@ -92,10 +92,25 @@
 
         function checkAnswer(selectedOption, buttonElement) {
             const allButtons = document.querySelectorAll('.option-btn');
-            // Disable buttons once clicked
             allButtons.forEach(button => {
-                button.disabled = true;
+                button.disabled = true;  // Disable buttons after selection
             });
+
+            let isCorrect = selectedOption === correctAnswer;
+            const attemptData = {
+                category: subject.toLowerCase(),
+                question_id: currentQuestion,
+                question_text: document.getElementById("question").innerText,
+                selected_answer: selectedOption,
+                correct_answer: correctAnswer
+            };
+
+            fetch('/save_attempt', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(attemptData)
+            }).then(response => response.json())
+              .then(data => console.log(data.message));
 
             if (selectedOption === correctAnswer) {
                 buttonElement.style.backgroundColor = "green";
@@ -104,15 +119,17 @@
                 buttonElement.style.backgroundColor = "red";
                 document.getElementById("result").innerText = "Wrong! The correct answer is: " + correctAnswer;
 
-               const correctButton = [...allButtons].find(button => button.textContent === correctAnswer);
+                const correctButton = [...allButtons].find(button => button.textContent === correctAnswer);
                 if (correctButton) {
-                    correctButton.style.backgroundColor = "green"; // Set the correct answer button to blue
+                    correctButton.style.backgroundColor = "green";  // Highlight correct answer
                 }
             }
-            document.getElementById("solution").innerText = solution ;
-            document.getElementById("solution").style.display = "block" ;
+
+            // Show the solution and result
+            document.getElementById("solution").innerText = solution;
+            document.getElementById("solution").style.display = "block";
             document.getElementById("result").style.display = "block";
-            document.getElementById("next-button").style.display = "block";
+            document.getElementById("next-button").style.display = "block";  // Enable next button
         }
 
         function loadNextQuestion() {
@@ -129,13 +146,10 @@
 
         function jumpToQuestion() {
             const questionNumber = document.getElementById("jump-to-question").value;
-            console.log(questionNumber)
             if (questionNumber && questionNumber >= 0 && questionNumber < totalQuestions) {
                 currentQuestion = parseInt(questionNumber);
                 loadQuestion(currentQuestion);
-
-            }
-            else{
+            } else {
                 document.getElementById("result").innerText = "Invalid question number.";
                 document.getElementById("result").style.display = "block";
             }
